@@ -2,6 +2,7 @@
 import random
 import tkinter as tk
 from memo import Memo
+from weather import WeatherMemo
 
 MAX_LEN = 30
 BG_COLOR = "#000000"
@@ -30,11 +31,13 @@ class ScreenSaverApp:
 
         self.hint_id = self.canvas.create_text(
             self.width // 2, self.height - 28,
-            text="N: 메모 추가    Space: 일시정지/재생    Esc: 종료",
+            text="N: 메모 추가    W: 날씨 새로고침    Space: 일시정지/재생    Esc: 종료",
             fill="#555555", font=("맑은 고딕", 11),
         )
 
         self.root.bind("<Key>", self.on_global_key)
+        self.weather = WeatherMemo(self)
+        self.weather.refresh()
         self.show_input(first=True)
         self.game_loop()
 
@@ -141,17 +144,19 @@ class ScreenSaverApp:
 
     # ---------- 메모 물체 관리 ----------
 
-    def add_memo(self, text):
+    def add_memo(self, text, on_click=None):
         mx = min(200, max(50, self.width // 4))
         my = min(150, max(50, self.height // 4))
         x = random.randint(mx, max(mx + 10, self.width - mx))
         y = random.randint(my, max(my + 10, self.height - my))
         memo = Memo(self.canvas, text, x, y, self.width, self.height)
+        click = (lambda e: self.mode == "NORMAL" and on_click()) if on_click else (lambda e, m=memo: self.show_confirm(m))
         for item_id in (memo.rect_id, memo.text_id):
-            self.canvas.tag_bind(item_id, "<Button-1>", lambda e, m=memo: self.show_confirm(m))
+            self.canvas.tag_bind(item_id, "<Button-1>", click)
             self.canvas.tag_bind(item_id, "<Enter>", lambda e: self.canvas.config(cursor="hand2"))
             self.canvas.tag_bind(item_id, "<Leave>", lambda e: self.canvas.config(cursor=""))
         self.memos.append(memo)
+        return memo
 
     # ---------- 키보드 이벤트 ----------
 
@@ -159,6 +164,8 @@ class ScreenSaverApp:
         if self.mode == "NORMAL":
             if event.keysym in ("n", "N") or event.char in ("n", "N", "ㅜ") or event.keycode == 78:
                 self.show_input(first=False)
+            elif event.keysym in ("w", "W") or event.char in ("w", "W", "ㅈ") or event.keycode == 87:
+                self.weather.refresh()
             elif event.keysym == "space" or event.char == " ":
                 self.paused = not self.paused
             elif event.keysym == "Escape":
@@ -172,6 +179,7 @@ class ScreenSaverApp:
     # ---------- 게임 루프 ----------
 
     def game_loop(self):
+        self.weather.poll()
         if self.mode == "NORMAL" and not self.paused:
             for memo in self.memos:
                 memo.step()

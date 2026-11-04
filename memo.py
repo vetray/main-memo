@@ -53,6 +53,17 @@ class Memo:
         if mx or my:
             self.move(mx, my)
 
+    def set_text(self, text):
+        """글을 바꾸고 배경 사각형 크기를 새 글에 맞춘다."""
+        self.text = text
+        self.canvas.itemconfig(self.text_id, text=text)
+        tx1, ty1, tx2, ty2 = self.canvas.bbox(self.text_id)
+        self.canvas.coords(self.rect_id, tx1 - PADDING, ty1 - PADDING, tx2 + PADDING, ty2 + PADDING)
+        self._clamp_into_bounds()
+
+    def set_outline(self, color):
+        self.canvas.itemconfig(self.rect_id, outline=color, width=3)
+
     def change_color(self):
         candidates = [c for c in COLORS if c != self.color]
         self.color = random.choice(candidates)

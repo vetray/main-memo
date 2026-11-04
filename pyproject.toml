@@ -1,13 +1,16 @@
 [project]
 name = "wk4"
 version = "0.1.0"
-description = "Add your description here"
+description = "메모 화면보호기 + OpenWeatherMap 날씨 메모"
 readme = "README.md"
 authors = [
     { name = "vetray", email = "vetjoon07@gmail.com" }
 ]
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "python-dotenv>=1.2.4",
+    "requests>=2.34.2",
+]
 
 [project.scripts]
 wk4 = "wk4:main"
